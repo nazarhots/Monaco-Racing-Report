@@ -61,7 +61,7 @@ def report():
 def report_drivers():
     desc_order = request.args.get("order") == "desc"
     query = DriverModel.select()
-    sorted_query = get_drivers_query(query, DriverModel.place, desc_order)
+    sorted_query = get_drivers_query(query, DriverModel.name, desc_order)
     return render_template("report_drivers.html", drivers_info=sorted_query)
 
 
