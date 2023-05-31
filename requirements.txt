@@ -1,0 +1,9 @@
+pytest == 7.3.1
+coverage == 7.2.5
+flask == 2.3.2
+beautifulsoup4 == 4.12.2
+flask_restful == 0.3.10
+flask_api == 3.0.post1
+flasgger == 0.9.7.1
+dict2xml == 1.7.3
+peewee == 3.16.2

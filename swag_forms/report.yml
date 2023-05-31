@@ -1,0 +1,124 @@
+swagger: '2.0'
+info:
+  title: Monaco Report
+  description: Monaco Racing report
+  contact:
+    email: gotsjob@gmail.com
+  license:
+    name: MIT
+    url: https://choosealicense.com/licenses/mit/
+  version: 1.0.0
+host: localhost:5000
+basePath: /api/v1
+produces:
+  - application/json
+  - application/xml
+tags:
+  - name: Report
+paths:
+  /report/:
+    get:
+      summary: Drivers report
+      tags:
+        - Report
+      parameters: 
+        - name: format
+          in: query
+          required: true
+          description: Choice of format
+          type: string
+          enum:
+            - json
+            - xml
+      responses:
+        '200':
+          description: Success drivers report list
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/ReportDrivers'
+            application/xml:
+              schema:
+                $ref: '#/definitions/ReportDrivers'
+  /report/drivers/:
+    get:
+      summary: Drivers information
+      tags:
+        - Report
+      parameters: 
+        - name: format
+          in: query
+          required: true
+          description: Choice of format
+          type: string
+          enum:
+            - json
+            - xml
+      responses:
+        '200':
+          description: Success drivers information
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Drivers'
+            application/xml:
+              schema:
+                $ref: '#/definitions/Drivers'
+  /report/drivers/{driver_abbr}:
+    get:
+      summary: Driver information
+      tags:
+        - Report
+      parameters:
+        - name: driver_abbr
+          in: path
+          required: true
+          description: Abbreviation of the driver
+          example: SVF
+          type: string
+        - name: format
+          in: query
+          required: true
+          description: Choice of format
+          type: string
+          enum:
+            - json
+            - xml
+      responses:
+        '200':
+          description: Success drivers information
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/Drivers'
+            application/xml:
+              schema:
+                $ref: '#/definitions/Drivers'
+definitions:
+  ReportDrivers:
+    type: object
+    properties:
+      driver_name:
+        type: object
+        properties:
+          best_lap:
+            type: string
+            example: "0:01:13.179"
+          place:
+            type: integer
+            example: 12
+          team:
+            type: string
+            example: "SCUDERIA TORO ROSSO HONDA"
+  Drivers:
+    type: object
+    properties:
+      driver_abbr:
+        type: object
+        properties:
+          name:
+            type: string
+            example: "Daniel Ricciardo"
+          team:
+            type: string
+            example: "RED BULL RACING TAG HEUER"

@@ -1,0 +1,45 @@
+{% extends "base.html" %} {% block title %} Drivers information {% endblock %}
+{% block style %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/report_drivers.css') }}"
+/>
+{% endblock %} {% block content %}
+<a href="#" id="expandLink" class="reverce-table">Expand</a>
+<table>
+  <thead>
+    <tr>
+      <th>Driver Name</th>
+      <th>Abbreviations</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for driver, info in drivers_info %}
+    <tr>
+      <td><span class="driver-name">{{ info["name"] }}</span></td>
+      <td>
+        <a href="{{ url_for('report_driver', driver_id=driver) }}"
+          >{{ driver }}</a
+        >
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<script>
+  document
+    .getElementById("expandLink")
+    .addEventListener("click", function (event) {
+      event.preventDefault();
+      var currentUrl = window.location.href;
+      var newUrl;
+      if (currentUrl.includes("?order=desc")) {
+        newUrl = currentUrl.replace("?order=desc", "");
+      } else {
+        newUrl = currentUrl + "?order=desc";
+      }
+      window.location.href = newUrl;
+    });
+</script>
+{% endblock %}

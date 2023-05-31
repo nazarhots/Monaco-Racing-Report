@@ -1,0 +1,21 @@
+.driver-info {
+  margin: auto;
+  text-align: center;
+}
+
+.driver-name {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.driver {
+  margin-top: 10px;
+}
+
+.best-lap {
+  margin-top: 10px;
+}
+
+.invalid-data {
+  color: red;
+}
