@@ -14,12 +14,12 @@
     </tr>
   </thead>
   <tbody>
-    {% for driver, info in drivers_info %}
+    {% for driver in drivers_info %}
     <tr>
-      <td><span class="driver-name">{{ info["name"] }}</span></td>
+      <td><span class="driver-name">{{ driver.name }}</span></td>
       <td>
-        <a href="{{ url_for('report_driver', driver_id=driver) }}"
-          >{{ driver }}</a
+        <a href="{{ url_for('report_driver', driver_id=driver.abbr) }}"
+          >{{ driver.abbr }}</a
         >
       </td>
     </tr>

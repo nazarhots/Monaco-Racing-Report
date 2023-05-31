@@ -17,12 +17,12 @@ block style %}
     </tr>
   </thead>
   <tbody>
-    {% for driver, info in drivers_info.items() %}
+    {% for driver in drivers_info %}
     <tr>
-      <td>{{ info.place }}.</td>
-      <td class="driver-name">{{ driver }}</td>
-      <td>{{ info.team }}</td>
-      <td>{{ info.best_lap }}</td>
+      <td>{{ driver.place }}.</td>
+      <td class="driver-name">{{ driver.name }}</td>
+      <td>{{ driver.team }}</td>
+      <td>{{ driver.best_lap }}</td>
     </tr>
     {% endfor %}
   </tbody>

@@ -141,7 +141,8 @@ def build_report(drivers_abbr: dict, drivers_best_lap: dict) -> dict:
 
             drivers_best_lap_report[driver_name] = {"team": driver_team,
                                                     "best_lap": driver_time,
-                                                    "place": place}
+                                                    "place": place,
+                                                    "abbr": driver_abbr}
         logger.info("The report with the best lap times of the drivers has been successfully built")
         return drivers_best_lap_report
     except KeyError as error:

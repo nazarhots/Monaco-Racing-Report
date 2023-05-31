@@ -6,6 +6,8 @@ from flask import Flask, render_template, redirect, url_for, request, jsonify, a
 from dict2xml import dict2xml
 
 from race_report import abbr_decoder, drivers_best_lap, build_report
+from db_utils import add_drivers_to_db
+from models import DriverModel, db
 
 
 app = Flask(__name__)
@@ -31,6 +33,15 @@ def format_response(parser: str, data: dict):
         return jsonify(data), 200
     elif parser == "xml":
         return dict2xml(data), 200
+    else:
+        abort(404)
+
+
+def get_drivers_query(query, order_by, desc: bool = False):
+    """Get a sorted query of drivers. """
+    if desc:
+        return query.order_by(order_by.desc())
+    return query.order_by(order_by)
 
 
 @app.route("/")
@@ -40,35 +51,26 @@ def index():
 
 @app.route("/report/")
 def report():
-    drivers_info = abbr_decoder(abbreviations_file)
-    drivers_lap = drivers_best_lap(start_log_file, end_log_file)
-    report = build_report(drivers_info, drivers_lap)
     desc_order = request.args.get("order") == "desc"
-    if desc_order:
-        report = {key: value for key, value in reversed(report.items())}
-    return render_template("report.html", drivers_info=report)
+    query = DriverModel.select()
+    sorted_query = get_drivers_query(query, DriverModel.place, desc_order)
+    return render_template("report.html", drivers_info=sorted_query)
 
 
 @app.route("/report/drivers/")
 def report_drivers():
     desc_order = request.args.get("order") == "desc"
-    drivers_info = abbr_decoder(abbreviations_file)
-    drivers_info = sorted(drivers_info.items(), key=lambda x: x[1]["name"], reverse=desc_order)
-    return render_template("report_drivers.html", drivers_info=drivers_info)
+    query = DriverModel.select()
+    sorted_query = get_drivers_query(query, DriverModel.place, desc_order)
+    return render_template("report_drivers.html", drivers_info=sorted_query)
 
 
 @app.route("/report/drivers/<driver_id>")
 def report_driver(driver_id):
-    drivers_info = abbr_decoder(abbreviations_file)
-    driver_info = drivers_info.get(driver_id)
-    if not driver_info:
+    driver = DriverModel.select().where(DriverModel.abbr == driver_id).first()
+    if not driver:
         abort(404)
-
-    driver_name = driver_info.get("name")
-    drivers_lap = drivers_best_lap(start_log_file, end_log_file)
-    report = build_report(drivers_info, drivers_lap)
-    driver = report.get(driver_name)
-    return render_template("driver_info.html", driver_info=driver_info, driver=driver)
+    return render_template("driver_info.html", driver=driver)
 
 
 @app.errorhandler(404)
@@ -79,13 +81,11 @@ def page_not_found(e):
 @app.route("/api/v1/report/", methods=["GET"])
 @swag_from("swag_forms/report.yml")
 def report_api():
-    """Generate a report in JSON or XML format."""
-    drivers_info = abbr_decoder(abbreviations_file)
-    drivers_lap = drivers_best_lap(start_log_file, end_log_file)
-    report = build_report(drivers_info, drivers_lap)
+    """Generate a report in JSON or XML format. """
     parser = request.args.get("format")
-    
-    response = format_response(parser=parser, data=report)
+    query = DriverModel.select()
+    json_data = [driver.serialize_report() for driver in query]    
+    response = format_response(parser=parser, data=json_data)
     return response
 
 
@@ -93,26 +93,30 @@ def report_api():
 @swag_from("swag_forms/report.yml")
 def report_drivers_api():
     """Retrieve information about drivers in JSON or XML format."""
-    drivers_info = abbr_decoder(abbreviations_file)
     parser = request.args.get("format")
-    
-    responce = format_response(parser=parser, data=drivers_info)
-    return responce
+    query = DriverModel.select().order_by(DriverModel.name)
+    json_data = [driver.serialize_drivers() for driver in query]    
+    response = format_response(parser=parser, data=json_data)
+    return response
     
 
 @app.route("/api/v1/report/drivers/<driver_abbr>", methods=["GET"])
 def report_driver_api(driver_abbr):
     """Retrieve information about driver in JSON or XML format."""
-    drivers_info = abbr_decoder(abbreviations_file)
     parser = request.args.get("format")
-    
-    if driver_abbr not in drivers_info:
+    driver_info = DriverModel.select().where(DriverModel.abbr == driver_abbr).first()
+    if not driver_info:
         abort(404)
-    driver_info = drivers_info[driver_abbr]
-    
-    response = format_response(parser=parser, data=driver_info)
+    json_data = DriverModel.serialize_drivers(driver_info)
+    response = format_response(parser=parser, data=json_data)
     return response
 
 
 if __name__ == "__main__":
-    app.run()
+    if not DriverModel.table_exists():
+        db.create_tables([DriverModel])
+        drivers_info = abbr_decoder(abbreviations_file)
+        drivers_lap = drivers_best_lap(start_log_file, end_log_file)
+        report = build_report(drivers_info, drivers_lap)
+        add_drivers_to_db(report)
+    app.run(debug=True)
