@@ -110,4 +110,4 @@ if __name__ == "__main__":
         drivers_lap = drivers_best_lap(start_log_file, end_log_file)
         report = build_report(drivers_info, drivers_lap)
         add_drivers_to_db(report)
-    app.run(debug=True)
+    app.run()
