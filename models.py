@@ -1,5 +1,7 @@
 from peewee import SqliteDatabase, Model, CharField, IntegerField
+
 from config import db_path
+
 
 db = SqliteDatabase(db_path)
 

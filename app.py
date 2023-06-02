@@ -5,7 +5,7 @@ from dict2xml import dict2xml
 
 from race_report import abbr_decoder, drivers_best_lap, build_report
 from db_utils import add_drivers_to_db
-from models import DriverModel, db
+from models import DriverModel
 from config import abbreviations_file, start_log_file, end_log_file
 
 
@@ -87,7 +87,7 @@ def report_drivers_api():
     """Retrieve information about drivers in JSON or XML format."""
     parser = request.args.get("format")
     query = DriverModel.select().order_by(DriverModel.name)
-    json_data = [driver.serialize_drivers() for driver in query]    
+    json_data = [driver.serialize_drivers() for driver in query]
     response = format_response(parser=parser, data=json_data)
     return response
     
@@ -106,7 +106,6 @@ def report_driver_api(driver_abbr):
 
 if __name__ == "__main__":
     if not DriverModel.table_exists():
-        db.create_tables([DriverModel])
         drivers_info = abbr_decoder(abbreviations_file)
         drivers_lap = drivers_best_lap(start_log_file, end_log_file)
         report = build_report(drivers_info, drivers_lap)
