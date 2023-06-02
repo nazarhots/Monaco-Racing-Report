@@ -10,4 +10,3 @@ def add_drivers_to_db(report: dict):
                         abbr=driver["abbr"],
                         team=driver["team"],
                         best_lap=driver["best_lap"]).save()
-
