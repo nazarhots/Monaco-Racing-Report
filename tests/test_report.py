@@ -94,23 +94,23 @@ def test_build_report_valid_data():
     drivers_best_lap = param_for_drivers_best_lap
 
     expected_data = {
-    'Sebastian Vettel': {
-        'team': 'FERRARI',
-        'best_lap': '0:01:04.415',
-        'place': 1,
-        'abbr': 'SVF'
+    "Sebastian Vettel": {
+        "team": "FERRARI",
+        "best_lap": "0:01:04.415",
+        "place": 1,
+        "abbr": "SVF"
     },
-    'Kimi Raikkonen': {
-        'team': 'FERRARI',
-        'best_lap': '0:01:12.434',
-        'place': 2,
-        'abbr': 'KRF'
+    "Kimi Raikkonen": {
+        "team": "FERRARI",
+        "best_lap": "0:01:12.434",
+        "place": 2,
+        "abbr": "KRF"
     },
-    'Valtteri Bottas': {
-        'team': 'MERCEDES',
-        'best_lap': '0:01:12.618',
-        'place': 3,
-        'abbr': 'VBM'
+    "Valtteri Bottas": {
+        "team": "MERCEDES",
+        "best_lap": "0:01:12.618",
+        "place": 3,
+        "abbr": "VBM"
     }
 }
 
