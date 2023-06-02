@@ -5,6 +5,7 @@ import pytest
 from race_report import abbr_decoder, drivers_best_lap, build_report, read_race_data
 from .param_data import param_for_abbr_decoder, param_for_drivers_best_lap
 
+
 def assert_raises_exception(expected_exception, func, *args, **kwargs):
     with pytest.raises(expected_exception):
         func(*args, **kwargs)
@@ -92,19 +93,27 @@ def test_build_report_valid_data():
 
     drivers_best_lap = param_for_drivers_best_lap
 
-    expected_data = {"Sebastian Vettel":
-                     {"team": "FERRARI",
-                      "best_lap": "0:01:04.415",
-                      "place": 1},
-                     "Kimi Raikkonen":
-                     {"team": "FERRARI",
-                      "best_lap": "0:01:12.434",
-                      "place": 2},
-                     "Valtteri Bottas":
-                     {"team": "MERCEDES",
-                      "best_lap": "0:01:12.618",
-                      "place": 3},
-                     }
+    expected_data = {
+    'Sebastian Vettel': {
+        'team': 'FERRARI',
+        'best_lap': '0:01:04.415',
+        'place': 1,
+        'abbr': 'SVF'
+    },
+    'Kimi Raikkonen': {
+        'team': 'FERRARI',
+        'best_lap': '0:01:12.434',
+        'place': 2,
+        'abbr': 'KRF'
+    },
+    'Valtteri Bottas': {
+        'team': 'MERCEDES',
+        'best_lap': '0:01:12.618',
+        'place': 3,
+        'abbr': 'VBM'
+    }
+}
+
     result = build_report(drivers_abbr, drivers_best_lap)
     assert result == expected_data
     
@@ -133,4 +142,3 @@ def test_build_report_keyerror():
 
     with pytest.raises(KeyError):
         build_report(drivers_abbr, drivers_best_lap)
-

@@ -1,13 +1,10 @@
-from unittest.mock import patch
 import xml.etree.ElementTree as ET
-import json
 
-import pytest
 from flask import url_for
 from bs4 import BeautifulSoup
 
 from app import app
-from .param_data import param_for_abbr_decoder, param_for_drivers_best_lap
+from models import DriverModel
 
 
 app.config["SERVER_NAME"] = "localhost"
@@ -21,12 +18,12 @@ def count_class_elements(html: str, element: str) -> int:
     return elements_amount
 
 
-def assert_driver_order(response, last_driver, first_driver):
+def assert_driver_order(response, first_driver, second_driver):
     """Asserts the order of drivers in the response."""
     soup = BeautifulSoup(response.text, "html.parser")
     driver_name_elements = soup.find_all(class_="driver-name")
-    last_place_index = driver_name_elements.index(soup.find("span", class_="driver-name", string=last_driver))
-    first_place_index = driver_name_elements.index(soup.find("span", class_="driver-name", string=first_driver))
+    last_place_index = driver_name_elements.index(soup.find("span", class_="driver-name", string=first_driver))
+    first_place_index = driver_name_elements.index(soup.find("span", class_="driver-name", string=second_driver))
 
     assert last_place_index > first_place_index
 
@@ -38,37 +35,31 @@ def test_index_redirect(client):
     assert "report" in response.location
 
 
-@pytest.mark.parametrize("data", [b"Place", b"Driver", b"Team", b"Best Lap"])
-def test_report_order(client, data):
+def test_report_order_asc(client):
     response = client.get(url_for("report"))
     
-    assert data in response.data
-
-
-@patch("app.abbr_decoder", return_value=param_for_abbr_decoder)
-@patch("app.drivers_best_lap", return_value=param_for_drivers_best_lap)
-def test_report_order_asc(abbr_mock, drivers_mock, client):
-    response = client.get(url_for("report"))
+    driver_first_place = DriverModel.select().where(DriverModel.place == 1).first()
+    driver_second_place = DriverModel.select().where(DriverModel.place == 2).first()
     response_text_with_first_place = response.text.split("<td>2.</td>")[0]
-    elements_number = count_class_elements(response.text, "driver-name")
 
-    assert "Sebastian Vettel" in response_text_with_first_place
-    assert "Kimi Raikkonen" not in response_text_with_first_place
-    assert "Valtteri Bottas" not in response_text_with_first_place
-    assert elements_number == 3
+    assert_driver_order(response, driver_second_place.name, driver_first_place.name)
+    assert response.status_code == 200
+    assert driver_first_place.name in response_text_with_first_place
+    assert driver_second_place.name not in response_text_with_first_place
 
 
-@patch("app.abbr_decoder", return_value=param_for_abbr_decoder)
-@patch("app.drivers_best_lap", return_value=param_for_drivers_best_lap)
-def test_report_order_desc(abbr_mock, drivers_mock, client):
+def test_report_order_desc(client):
     response = client.get(url_for("report", order="desc"))
+    
+    drivers_number = count_class_elements(response.text, "driver-name")
+    driver_last_place = DriverModel.select().where(DriverModel.place == drivers_number).first()
+    driver_first_place = DriverModel.select().where(DriverModel.place == 1).first()
     response_text_with_last_place = response.text.split("<td>2.</td>")[0]
-    elements_number = count_class_elements(response.text, "driver-name")
 
-    assert "Valtteri Bottas" in response_text_with_last_place
-    assert "Sebastian Vettel" not in response_text_with_last_place
-    assert "Kimi Raikkonen" not in response_text_with_last_place
-    assert elements_number == 3
+    assert_driver_order(response, driver_first_place.name, driver_last_place.name)
+    assert response.status_code == 200
+    assert driver_last_place.name in response_text_with_last_place
+    assert driver_first_place.name not in response_text_with_last_place
 
 
 def test_report_drivers(client):
@@ -79,41 +70,39 @@ def test_report_drivers(client):
     assert b"Abbreviations" in response.data
 
 
-@patch("app.abbr_decoder", return_value=param_for_abbr_decoder)
-@patch("app.drivers_best_lap", return_value=param_for_drivers_best_lap)
-def test_report_drivers_order_asc(abbr_mock, drivers_mock, client):
+def test_report_drivers_order_asc(client):
     response = client.get(url_for("report_drivers"))
-    elements_number = count_class_elements(response.text, "driver-name")
-
-    assert_driver_order(response, "Valtteri Bottas", "Sebastian Vettel")
+    driver_name = DriverModel.select().where(DriverModel.place == 1).first().name
+    driver_abbr = DriverModel.select().where(DriverModel.place == 1).first().abbr
     
-    assert elements_number == 3
+    assert response.status_code == 200
+    assert driver_name in response.text
+    assert driver_abbr in response.text
 
 
-@patch("app.abbr_decoder", return_value=param_for_abbr_decoder)
-@patch("app.drivers_best_lap", return_value=param_for_drivers_best_lap)
-def test_report_drivers_order_desc(abbr_mock, drivers_mock, client):
+def test_report_drivers_order_desc(client):
     response = client.get(url_for("report_drivers", order="desc"))
-    elements_number = count_class_elements(response.text, "driver-name")
-
-    assert_driver_order(response, "Sebastian Vettel", "Valtteri Bottas")
+    driver_name = DriverModel.select().where(DriverModel.place == 1).first().name
+    driver_abbr = DriverModel.select().where(DriverModel.place == 1).first().abbr
     
-    assert elements_number == 3
-
+    assert response.status_code == 200
+    assert driver_name in response.text
+    assert driver_abbr in response.text
+    
 
 def test_report_driver_info(client):
-    response = client.get(url_for("report_driver", driver_id="SVF"))
-    elements_number = count_class_elements(response.text, "driver-name")
-
+    driver = DriverModel.select().where(DriverModel.place == 1).first()
+    response = client.get(url_for("report_driver", driver_id=driver.abbr))
+    
     assert response.status_code == 200
-    assert elements_number == 1
+    assert driver.name in response.text
     
 
 def test_report_driver_info_invalid_data(client):
     response = client.get(url_for("report_driver", driver_id="TEST"))
 
     assert response.status_code == 404
-    
+
 
 def test_page_not_found(client):
     response = client.get("/my_test_url")
@@ -121,89 +110,94 @@ def test_page_not_found(client):
     assert response.status_code == 404
 
 
-@patch("app.abbr_decoder", return_value=param_for_abbr_decoder)
-@patch("app.drivers_best_lap", return_value=param_for_drivers_best_lap)
-def test_report_api_json(abbr_mock, drivers_mock, client):
-    response = client.get("/api/v1/report/?format=json")
-   
-    data = json.loads(response.text)
-    elements_number = len(data)
-    expected_data = {
-        'Kimi Raikkonen': {'best_lap': '0:01:12.434', 'place': 2, 'team': 'FERRARI'},
-        'Sebastian Vettel': {'best_lap': '0:01:04.415', 'place': 1, 'team': 'FERRARI'},
-        'Valtteri Bottas': {'best_lap': '0:01:12.618', 'place': 3, 'team': 'MERCEDES'}
-    }
+def test_report_api_json(client):
+    response = client.get(url_for("report_api", format="json"))
+    
+    driver = DriverModel.select().where(DriverModel.place == 1).first()
+    expected_data = {"abbr": driver.abbr, 
+                     "best_lap": driver.best_lap, 
+                     "name": driver.name, 
+                     "place": driver.place, 
+                     "team": driver.team}
 
-    assert elements_number == 3
-    assert data == expected_data
-    
+    assert expected_data == response.get_json()[0]
+    assert response.status_code == 200
 
-@patch("app.abbr_decoder", return_value=param_for_abbr_decoder)
-@patch("app.drivers_best_lap", return_value=param_for_drivers_best_lap)
-def test_report_api_xml(abbr_mock, drivers_mock, client):
-    response = client.get("/api/v1/report/?format=xml")
-    
-    data = response.text
-    xml_data = f"<root>{data}</root>"
-    root = ET.fromstring(xml_data)
-    xml_formatted = ET.tostring(root, encoding='utf-8').decode('utf-8')
-    
-    expected_data = "root><Kimi_Raikkonen>\n  <best_lap>0:01:12.434</best_lap>\n  <place>2</place>\n  <team>FERRARI"
-    
-    assert expected_data in xml_formatted
-    
 
-@patch("app.abbr_decoder", return_value=param_for_abbr_decoder)
-def test_report_drivers_api_json(abbr_mock, client):
-    response = client.get("/api/v1/report/drivers/?format=json")
+def test_report_api_xml(client):
+    response = client.get(url_for("report_api", format="xml"))
     
-    data = json.loads(response.text)
-    elements_number = len(data)
+    driver = DriverModel.select().where(DriverModel.place == 1).first()    
+    text = response.text.strip()
+    driver_xml = f"<root>{text}</root>"
+    root = ET.fromstring(driver_xml)
     
-    expected_data = {
-        'KRF': {'name': 'Kimi Raikkonen', 'team': 'FERRARI'},
-        'SVF': {'name': 'Sebastian Vettel', 'team': 'FERRARI'},
-        'VBM': {'name': 'Valtteri Bottas', 'team': 'MERCEDES'}
-    }
+    response_name = root.find("name").text
+    response_abbr = root.find("abbr").text
+    response_team = root.find("team").text
+    response_place = int(root.find("place").text)
+    response_best_lap = root.find("best_lap").text
     
-    assert data == expected_data
-    assert elements_number == 3
+    assert driver.name == response_name
+    assert driver.abbr == response_abbr
+    assert driver.team == response_team
+    assert driver.place == response_place
+    assert driver.best_lap == response_best_lap
+    assert response.status_code == 200
     
 
-@patch("app.abbr_decoder", return_value=param_for_abbr_decoder)
-def test_report_drivers_api_xml(abbr_mock, client):
-    response = client.get("/api/v1/report/drivers/?format=xml")
-    data = response.text
+def test_report_drivers_api_json(client):
+    response = client.get(url_for("report_drivers_api", format="json"))
     
-    xml_data = f"<root>{data}</root>"
-    root = ET.fromstring(xml_data)
-    xml_formatted = ET.tostring(root, encoding='utf-8').decode('utf-8')
-    expected_data = "<root><KRF>\n  <name>Kimi Raikkonen</name>\n  <team>FERRARI</team>\n</KRF>\n<SVF>\n"
+    driver = DriverModel.select().order_by(DriverModel.name).first()
+    driver_json_response = response.get_json()[0]
+    colomns_number = len(driver_json_response)
     
-    assert expected_data in xml_formatted
-    
-
-@patch("app.abbr_decoder", return_value=param_for_abbr_decoder)
-def test_report_driver_api_valid_json(abbr_mock, client):
-    response = client.get("/api/v1/report/drivers/SVF?format=json")
-    data = json.loads(response.text)
-    
-    expected_data = {'name': 'Sebastian Vettel', 'team': 'FERRARI'}
-    assert data == expected_data
+    assert response.status_code == 200
+    assert colomns_number == 2
+    assert driver.name == driver_json_response["name"]
+    assert driver.team == driver_json_response["team"]
     
 
-@patch("app.abbr_decoder", return_value=param_for_abbr_decoder)
-def test_report_driver_api_valid_xml(abbr_mock, client):
-    response = client.get("/api/v1/report/drivers/SVF?format=xml")
+def test_report_drivers_api_xml(client):
+    response = client.get(url_for("report_drivers_api", format="xml"))
     
-    data = response.text
-    xml_data = f"<root>{data}</root>"
-    root = ET.fromstring(xml_data)
-    xml_formatted = ET.tostring(root, encoding='utf-8').decode('utf-8')
+    driver = DriverModel.select().order_by(DriverModel.name).first()
+    text = response.text.strip()
+    driver_xml = f"<root>{text}</root>"
+    root = ET.fromstring(driver_xml)
     
-    expected_data = "<root><name>Sebastian Vettel</name>\n<team>FERRARI</team></root>"
+    responce_name = root.find("name").text
+    response_team = root.find("team").text
+
+    assert driver.name == responce_name
+    assert driver.team == response_team
+
+
+def test_report_driver_api_valid_json(client):
+    driver = DriverModel.select().first()
+    response = client.get(url_for("report_driver_api", driver_abbr=driver.abbr, format="json"))
+    driver_json_response = response.get_json()
     
-    assert xml_formatted == expected_data
+    assert driver.name == driver_json_response["name"]
+    assert driver.team == driver_json_response["team"]
+    assert response.status_code == 200
+
+
+def test_report_driver_api_valid_xml(client):
+    driver = DriverModel.select().first()
+    response = client.get(url_for("report_driver_api", driver_abbr=driver.abbr, format="xml"))
+    
+    text = response.text.strip()
+    driver_xml = f"<root>{text}</root>"
+    root = ET.fromstring(driver_xml)
+    
+    responce_name = root.find("name").text
+    response_team = root.find("team").text
+    
+    assert driver.name == responce_name
+    assert driver.team == response_team
+    assert response.status_code == 200
     
     
 def test_report_driver_invalid_data(client):

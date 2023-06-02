@@ -1,5 +1,3 @@
-import configparser
-
 from flask_restful import Api
 from flasgger import Swagger, swag_from
 from flask import Flask, render_template, redirect, url_for, request, jsonify, abort
@@ -8,18 +6,12 @@ from dict2xml import dict2xml
 from race_report import abbr_decoder, drivers_best_lap, build_report
 from db_utils import add_drivers_to_db
 from models import DriverModel, db
+from config import abbreviations_file, start_log_file, end_log_file
 
 
 app = Flask(__name__)
 api = Api(app)
 swagger = Swagger(app, template_file="swag_forms/report.yml")
-
-config = configparser.ConfigParser()
-config.read("config.ini")
-
-abbreviations_file = config["Files"]["Abbreviations"]
-start_log_file = config["Files"]["StartLog"]
-end_log_file = config["Files"]["EndLog"]
 
 
 def format_response(parser: str, data: dict):
@@ -84,7 +76,7 @@ def report_api():
     """Generate a report in JSON or XML format. """
     parser = request.args.get("format")
     query = DriverModel.select()
-    json_data = [driver.serialize_report() for driver in query]    
+    json_data = [driver.serialize_report() for driver in query]
     response = format_response(parser=parser, data=json_data)
     return response
 

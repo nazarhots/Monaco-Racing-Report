@@ -1,6 +1,7 @@
 from peewee import SqliteDatabase, Model, CharField, IntegerField
+from config import db_path
 
-db = SqliteDatabase("racing_report.db")
+db = SqliteDatabase(db_path)
 
 class DriverModel(Model):
     place = IntegerField(primary_key=True)
@@ -19,7 +20,8 @@ class DriverModel(Model):
             "name": self.name,
             "place": self.place,
             "team": self.team,
-            "best_lap": self.best_lap
+            "best_lap": self.best_lap,
+            "abbr": self.abbr
         }
         
     def serialize_drivers(self):
