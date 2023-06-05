@@ -9,7 +9,7 @@ class DriverModel(Model):
     place = IntegerField(primary_key=True)
     name = CharField(max_length=100)
     abbr = CharField(max_length=3)
-    team = CharField()
+    team = CharField(max_length=50)
     best_lap = CharField(max_length=20)
     
     class Meta:
