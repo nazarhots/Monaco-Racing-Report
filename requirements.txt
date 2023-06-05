@@ -7,3 +7,4 @@ flask_api == 3.0.post1
 flasgger == 0.9.7.1
 dict2xml == 1.7.3
 peewee == 3.16.2
+python-dotenv == 1.0.0

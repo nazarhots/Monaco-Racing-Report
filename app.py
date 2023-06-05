@@ -1,17 +1,20 @@
+import os
+
 from flask_restful import Api
 from flasgger import Swagger, swag_from
 from flask import Flask, render_template, redirect, url_for, request, jsonify, abort
 from dict2xml import dict2xml
+from dotenv import load_dotenv
 
 from race_report import abbr_decoder, drivers_best_lap, build_report
 from db_utils import add_drivers_to_db
 from models import DriverModel
-from config import abbreviations_file, start_log_file, end_log_file
 
 
 app = Flask(__name__)
 api = Api(app)
 swagger = Swagger(app, template_file="swag_forms/report.yml")
+load_dotenv()
 
 
 def format_response(parser: str, data: dict):
@@ -105,8 +108,14 @@ def report_driver_api(driver_abbr):
 
 
 if __name__ == "__main__":
-    drivers_info = abbr_decoder(abbreviations_file)
-    drivers_lap = drivers_best_lap(start_log_file, end_log_file)
+    abbreviations_path = os.getenv("ABBREVIATIONS_PATH")
+    startlog_path = os.getenv("STARTLOG_PATH")
+    endlog_path = os.getenv("ENDLOG_PATH")
+    db_path = os.getenv("DB_PATH")
+
+    drivers_info = abbr_decoder(abbreviations_path)
+    drivers_lap = drivers_best_lap(startlog_path, endlog_path)
     report = build_report(drivers_info, drivers_lap)
-    add_drivers_to_db(report)
+    add_drivers_to_db(report, db_path)
     app.run()
+

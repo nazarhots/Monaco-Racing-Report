@@ -1,9 +1,11 @@
+import os
+
 from peewee import SqliteDatabase, Model, CharField, IntegerField
+from dotenv import load_dotenv
 
-from config import db_path
 
-
-db = SqliteDatabase(db_path)
+load_dotenv()
+db = SqliteDatabase(os.getenv("DB_PATH"))
 
 class DriverModel(Model):
     place = IntegerField(primary_key=True)
