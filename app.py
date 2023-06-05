@@ -10,12 +10,14 @@ from peewee import PeeweeException, DatabaseError
 from race_report import abbr_decoder, drivers_best_lap, build_report
 from db_utils import add_drivers_to_db
 from models import DriverModel
+from logger.logger import create_report_logger
 
 
 app = Flask(__name__)
 api = Api(app)
 load_dotenv()
 swagger = Swagger(app, template_file=os.getenv("SWAG_REPORT_PATH"))
+logger = create_report_logger()
 
 
 def format_response(parser: str, data: dict):
@@ -30,6 +32,7 @@ def format_response(parser: str, data: dict):
     elif parser.lower() == "xml":
         return dict2xml(data), 200
     else:
+        logger.error(f"Invalid parser type {parser}")
         abort(400, f"Invalid parser type {parser}. Supported types: JSON, XML")
 
 
@@ -53,13 +56,14 @@ def initialize_app():
 
 @app.errorhandler(ValueError)
 @app.errorhandler(404)
-def page_not_found(e):
+def page_not_found(error):
     return render_template("error.html"), 404
 
 
 @app.errorhandler(PeeweeException)
 @app.errorhandler(DatabaseError)
 def handle_database_error(error):
+    logger.error("An error occurred during database operation")
     abort(500, str(error))
 
 
@@ -88,6 +92,7 @@ def report_drivers():
 def report_driver(driver_id):
     driver = DriverModel.select().where(DriverModel.abbr == driver_id).first()
     if not driver:
+        logger.error(f"Driver '{driver_id}' not found")
         raise ValueError
     return render_template("driver_info.html", driver=driver)
 
@@ -120,6 +125,7 @@ def report_driver_api(driver_abbr):
     parser = request.args.get("format")
     driver_info = DriverModel.select().where(DriverModel.abbr == driver_abbr).first()
     if not driver_info:
+        logger.error(f"Driver '{driver_abbr}' not found")
         raise ValueError
     json_data = DriverModel.serialize_drivers(driver_info)
     response = format_response(parser=parser, data=json_data)
