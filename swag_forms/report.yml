@@ -8,7 +8,6 @@ info:
     name: MIT
     url: https://choosealicense.com/licenses/mit/
   version: 1.0.0
-host: localhost:5000
 basePath: /api/v1
 produces:
   - application/json
