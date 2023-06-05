@@ -1,7 +1,9 @@
 import xml.etree.ElementTree as ET
+from unittest.mock import patch
 
 from flask import url_for
 from bs4 import BeautifulSoup
+from peewee import PeeweeException, DatabaseError
 
 from app import app
 from models import DriverModel
@@ -62,6 +64,14 @@ def test_report_order_desc(client):
     assert driver_first_place.name not in response_text_with_last_place
 
 
+def test_report_exception(client):
+    with patch("app.DriverModel.select") as mock:
+        mock.side_effect = PeeweeException()
+        response = client.get(url_for("report"))
+        
+        assert response.status_code == 500
+
+
 def test_report_drivers(client):
     response = client.get(url_for("report_drivers"))
 
@@ -88,7 +98,15 @@ def test_report_drivers_order_desc(client):
     assert response.status_code == 200
     assert driver_name in response.text
     assert driver_abbr in response.text
-    
+
+
+def test_report_drivers_exception(client):
+    with patch("app.DriverModel.select") as mock:
+        mock.side_effect = PeeweeException()
+        response = client.get(url_for("report_drivers"))
+        
+        assert response.status_code == 500
+
 
 def test_report_driver_info(client):
     driver = DriverModel.select().where(DriverModel.place == 1).first()
@@ -102,6 +120,14 @@ def test_report_driver_info_invalid_data(client):
     response = client.get(url_for("report_driver", driver_id="TEST"))
 
     assert response.status_code == 404
+
+
+def test_report_driver_exception(client):
+    with patch("app.DriverModel.select") as mock:
+        mock.side_effect = PeeweeException()
+        response = client.get(url_for("report_driver", driver_id="SVF"))
+        
+        assert response.status_code == 500
 
 
 def test_page_not_found(client):
@@ -146,6 +172,14 @@ def test_report_api_xml(client):
     assert response.status_code == 200
     
 
+def test_report_api_exception(client):
+    with patch("app.DriverModel.select") as mock:
+        mock.side_effect = PeeweeException()
+        response = client.get(url_for("report_api"))
+        
+        assert response.status_code == 500
+
+
 def test_report_drivers_api_json(client):
     response = client.get(url_for("report_drivers_api", format="json"))
     
@@ -172,6 +206,14 @@ def test_report_drivers_api_xml(client):
 
     assert driver.name == responce_name
     assert driver.team == response_team
+
+
+def test_report_drivers_api_exception(client):
+    with patch("app.DriverModel.select") as mock:
+        mock.side_effect = PeeweeException()
+        response = client.get(url_for("report_drivers_api"))
+        
+        assert response.status_code == 500
 
 
 def test_report_driver_api_valid_json(client):
@@ -204,3 +246,11 @@ def test_report_driver_invalid_data(client):
     response = client.get("/api/v1/report/drivers/TEST?format=xml")
     
     assert response.status_code == 404
+
+
+def test_report_driver_api_exception(client):
+    with patch("app.DriverModel.select") as mock:
+        mock.side_effect = PeeweeException()
+        response = client.get(url_for("report_driver_api", driver_abbr="SVF"))
+        
+        assert response.status_code == 500

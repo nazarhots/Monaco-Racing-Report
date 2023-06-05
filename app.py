@@ -5,6 +5,7 @@ from flasgger import Swagger, swag_from
 from flask import Flask, render_template, redirect, url_for, request, jsonify, abort
 from dict2xml import dict2xml
 from dotenv import load_dotenv
+from peewee import PeeweeException, DatabaseError
 
 from race_report import abbr_decoder, drivers_best_lap, build_report
 from db_utils import add_drivers_to_db
@@ -24,9 +25,9 @@ def format_response(parser: str, data: dict):
         parser (str): The parser type ("json" or "xml").
         data (dict): The data to be formatted.
     """
-    if parser == "json":
+    if parser.lower() == "json":
         return jsonify(data), 200
-    elif parser == "xml":
+    elif parser.lower() == "xml":
         return dict2xml(data), 200
     else:
         abort(400, f"Invalid parser type {parser}. Supported types: JSON, XML")
@@ -48,6 +49,18 @@ def initialize_app():
     drivers_lap = drivers_best_lap(startlog_path, endlog_path)
     report = build_report(drivers_info, drivers_lap)
     add_drivers_to_db(report)
+    
+
+@app.errorhandler(ValueError)
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template("error.html"), 404
+
+
+@app.errorhandler(PeeweeException)
+@app.errorhandler(DatabaseError)
+def handle_database_error(error):
+    abort(500, str(error))
 
 
 @app.route("/")
@@ -75,13 +88,8 @@ def report_drivers():
 def report_driver(driver_id):
     driver = DriverModel.select().where(DriverModel.abbr == driver_id).first()
     if not driver:
-        abort(404)
+        raise ValueError
     return render_template("driver_info.html", driver=driver)
-
-
-@app.errorhandler(404)
-def page_not_found(e):
-    return render_template("error.html"), 404
 
 
 @app.route("/api/v1/report/", methods=["GET"])
@@ -104,7 +112,7 @@ def report_drivers_api():
     json_data = [driver.serialize_drivers() for driver in query]
     response = format_response(parser=parser, data=json_data)
     return response
-    
+
 
 @app.route("/api/v1/report/drivers/<driver_abbr>", methods=["GET"])
 def report_driver_api(driver_abbr):
@@ -112,7 +120,7 @@ def report_driver_api(driver_abbr):
     parser = request.args.get("format")
     driver_info = DriverModel.select().where(DriverModel.abbr == driver_abbr).first()
     if not driver_info:
-        abort(404)
+        raise ValueError
     json_data = DriverModel.serialize_drivers(driver_info)
     response = format_response(parser=parser, data=json_data)
     return response
@@ -121,4 +129,3 @@ def report_driver_api(driver_abbr):
 if __name__ == "__main__":
     initialize_app()
     app.run()
-
