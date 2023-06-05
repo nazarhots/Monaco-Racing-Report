@@ -13,8 +13,8 @@ from models import DriverModel
 
 app = Flask(__name__)
 api = Api(app)
-swagger = Swagger(app, template_file="swag_forms/report.yml")
 load_dotenv()
+swagger = Swagger(app, template_file=os.getenv("SWAG_REPORT_PATH"))
 
 
 def format_response(parser: str, data: dict):
