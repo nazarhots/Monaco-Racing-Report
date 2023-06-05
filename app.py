@@ -39,6 +39,17 @@ def get_drivers_query(query, order_by, desc: bool = False):
     return query.order_by(order_by)
 
 
+def initialize_app():
+    abbreviations_path = os.getenv("ABBREVIATIONS_PATH")
+    startlog_path = os.getenv("STARTLOG_PATH")
+    endlog_path = os.getenv("ENDLOG_PATH")
+    
+    drivers_info = abbr_decoder(abbreviations_path)
+    drivers_lap = drivers_best_lap(startlog_path, endlog_path)
+    report = build_report(drivers_info, drivers_lap)
+    add_drivers_to_db(report)
+
+
 @app.route("/")
 def index():
     return redirect(url_for("report"))
@@ -108,14 +119,6 @@ def report_driver_api(driver_abbr):
 
 
 if __name__ == "__main__":
-    abbreviations_path = os.getenv("ABBREVIATIONS_PATH")
-    startlog_path = os.getenv("STARTLOG_PATH")
-    endlog_path = os.getenv("ENDLOG_PATH")
-    db_path = os.getenv("DB_PATH")
-
-    drivers_info = abbr_decoder(abbreviations_path)
-    drivers_lap = drivers_best_lap(startlog_path, endlog_path)
-    report = build_report(drivers_info, drivers_lap)
-    add_drivers_to_db(report, db_path)
+    initialize_app()
     app.run()
 
