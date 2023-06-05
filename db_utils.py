@@ -11,8 +11,10 @@ def add_drivers_to_db(report: dict):
         logger.info("DriverModel table created")
     with db:
         for driver_name, driver in report.items():
-            DriverModel(name=driver_name,
-                        abbr=driver.get("abbr"),
-                        team=driver.get("team"),
-                        best_lap=driver.get("best_lap")).save()
-            logger.info(f"Driver {driver_name} ({driver.get('abbr')}) added to DB")
+            existing_driver = DriverModel.get_or_none(DriverModel.name == driver_name)
+            if not existing_driver:
+                DriverModel(name=driver_name,
+                            abbr=driver.get("abbr"),
+                            team=driver.get("team"),
+                            best_lap=driver.get("best_lap")).save()
+                logger.info(f"Driver {driver_name} ({driver.get('abbr')}) added to DB")
