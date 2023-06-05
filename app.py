@@ -29,7 +29,7 @@ def format_response(parser: str, data: dict):
     elif parser == "xml":
         return dict2xml(data), 200
     else:
-        abort(404)
+        abort(400, f"Invalid parser type {parser}. Supported types: JSON, XML")
 
 
 def get_drivers_query(query, order_by, desc: bool = False):
