@@ -105,9 +105,8 @@ def report_driver_api(driver_abbr):
 
 
 if __name__ == "__main__":
-    if not DriverModel.table_exists():
-        drivers_info = abbr_decoder(abbreviations_file)
-        drivers_lap = drivers_best_lap(start_log_file, end_log_file)
-        report = build_report(drivers_info, drivers_lap)
-        add_drivers_to_db(report)
+    drivers_info = abbr_decoder(abbreviations_file)
+    drivers_lap = drivers_best_lap(start_log_file, end_log_file)
+    report = build_report(drivers_info, drivers_lap)
+    add_drivers_to_db(report)
     app.run()
