@@ -1,0 +1,39 @@
+ul {
+  list-style-type: none;
+  padding: 0;
+  margin-left: 50px;
+  margin-top: 10px;
+}
+
+li {
+  margin-bottom: 10px;
+}
+
+.driver-name {
+  display: inline-block;
+  margin-right: 20px;
+}
+
+table {
+  border-collapse: collapse;
+  width: 90%;
+  margin: auto;
+  margin-top: 20px;
+}
+
+th,
+td {
+  border: 1px solid black;
+  padding: 8px;
+  text-align: center;
+}
+
+th {
+  background-color: #b3b3b393;
+}
+
+.reverce-table {
+  font-weight: bold;
+  margin-left: 87%;
+  text-decoration: none;
+}

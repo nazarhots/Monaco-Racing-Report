@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>{% block title %} {% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/favicon/apple-touch-icon.png')}}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/favicon/favicon-32x32.png')}}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/favicon/favicon-16x16.png')}}">
+    <link rel="manifest" href="/site.webmanifest">
+    {% block style %} {% endblock %}
+  </head>
+  <body>
+    <div class="nav">
+      <a href="/">
+        <img src="{{ url_for('static', filename='img/f1_logo.png') }}" alt="F1 logo">
+      </a>
+      <a href="/report">Report</a>
+      <a href="/report/drivers">Drivers Info</a>
+    </div>
+    <div class="content">
+      {% block content %} {% endblock %}
+    </div>
+  </body>
+</html>

@@ -1,0 +1,23 @@
+table {
+  border-collapse: collapse;
+  width: 90%;
+  margin: auto;
+  margin-top: 20px;
+}
+
+th,
+td {
+  border: 1px solid black;
+  padding: 8px;
+  text-align: center;
+}
+
+th {
+  background-color: #b3b3b393;
+}
+
+.reverce-table {
+  font-weight: bold;
+  margin-left: 87%;
+  text-decoration: none;
+}

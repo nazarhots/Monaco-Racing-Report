@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}
+  Info about {{ driver.name }}
+{% endblock %}
+
+{% block style %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/driver_info.css') }}">
+{% endblock %}
+
+{% block content %}
+    <div class="driver-info">
+        {% if driver.place == 1 %}
+            <h2>&#129351 Winner &#129351</h2>
+        {% endif %}
+        <p class="driver-name">{{ driver.name }}</p>
+        {% if not driver.place %}
+            <h2 class="invalid-data">Invalid data for driver. Please check data files.</h2>
+        {% endif %}
+        {% if driver.place %}
+        <p class="driver">Place: {{ driver.place }}</p>
+        <p class="driver">Team: {{ driver.team }}</p>
+        <p class="best-lap">Best Lap: {{ driver.best_lap }}</p>
+        {% endif %}
+    </div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "base.html" %} {% block title %} Monaco Racing {% endblock %} {%
+block style %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/report.css') }}"
+/>
+{% endblock %} {% block content %}
+<a href="#" id="expandLink" class="reverce-table">Expand</a>
+
+<table>
+  <thead>
+    <tr>
+      <th>Place</th>
+      <th>Driver</th>
+      <th>Team</th>
+      <th>Best Lap</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for driver in drivers_info %}
+    <tr>
+      <td>{{ driver.place }}.</td>
+      <td><span class="driver-name">{{ driver.name }}</span></td>
+      <td>{{ driver.team }}</td>
+      <td>{{ driver.best_lap }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<script>
+  document
+    .getElementById("expandLink")
+    .addEventListener("click", function (event) {
+      event.preventDefault();
+      var currentUrl = window.location.href;
+      var newUrl;
+      if (currentUrl.includes("?order=desc")) {
+        newUrl = currentUrl.replace("?order=desc", "");
+      } else {
+        newUrl = currentUrl + "?order=desc";
+      }
+      window.location.href = newUrl;
+    });
+</script>
+{% endblock %}
